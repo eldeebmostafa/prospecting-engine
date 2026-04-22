@@ -129,8 +129,8 @@ async function qualifyBatch(leads, criteria, openai, model) {
 router.post('/', async (req, res) => {
   const { country, city, businessType, language, limit = 20, criteria } = req.body
 
-  if (!country || !city || !businessType) {
-    return res.status(400).json({ error: 'country, city, and businessType are required' })
+  if (!country || !businessType) {
+    return res.status(400).json({ error: 'country and businessType are required' })
   }
   if (!criteria) {
     return res.status(400).json({ error: 'criteria is required' })
