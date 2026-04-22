@@ -1,7 +1,45 @@
 import { useState, useCallback, useRef } from 'react'
+import * as XLSX from 'xlsx'
 import SearchForm from './components/SearchForm'
 import ResultsTable from './components/ResultsTable'
 import Toast from './components/Toast'
+
+const HEADERS = [
+  'Business Name', 'Phone', 'Address', 'Website', 'Source',
+  'AI Score', 'AI Reason', 'Is Importer', 'WhatsApp Detected',
+  'Facebook', 'Instagram', 'TikTok',
+  'Duplicate Flag', 'Country', 'City', 'Business Type', 'Exported At',
+]
+
+const SCORE_FILL = {
+  High:   { fgColor: { rgb: 'C6EFCE' } }, // light green
+  Medium: { fgColor: { rgb: 'FCE4D6' } }, // light orange
+  Low:    { fgColor: { rgb: 'FFEB9C' } }, // light yellow
+  Reject: { fgColor: { rgb: 'FFC7CE' } }, // light red
+}
+
+function leadToRow(lead, meta) {
+  const firstLink = (arr) => (arr?.[0] ?? '')
+  return [
+    lead.name ?? '',
+    lead.phone ?? '',
+    lead.address ?? '',
+    lead.website ?? '',
+    lead.source ?? '',
+    lead.score ?? '',
+    lead.reason ?? '',
+    lead.isImporter ?? '',
+    lead.whatsappDetected ? 'Yes' : 'No',
+    firstLink(lead.socialLinks?.facebook),
+    firstLink(lead.socialLinks?.instagram),
+    firstLink(lead.socialLinks?.tiktok),
+    lead.duplicate ? 'Yes' : 'No',
+    meta.country ?? '',
+    meta.city ?? '',
+    meta.businessType ?? '',
+    new Date().toISOString().slice(0, 10),
+  ]
+}
 
 // In dev, VITE_API_URL is empty — requests go through Vite's proxy to localhost:3001.
 // In production, set VITE_API_URL to the Render backend URL in Vercel env settings.
@@ -88,6 +126,53 @@ export default function App() {
     }
   }
 
+  function handleDownloadExcel() {
+    const rows = (results ?? []).filter(r => selected.has(r._id))
+    if (!rows.length) return
+
+    const dataRows = rows.map(({ _id, ...r }) => leadToRow(r, searchMeta))
+    const wsData = [HEADERS, ...dataRows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Header row styling: bold, navy bg (#003188), white text
+    const headerFill = { patternType: 'solid', fgColor: { rgb: '003188' } }
+    const headerFont = { bold: true, color: { rgb: 'FFFFFF' } }
+    HEADERS.forEach((_, ci) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: ci })
+      if (!ws[cellRef]) return
+      ws[cellRef].s = { fill: headerFill, font: headerFont, alignment: { horizontal: 'center' } }
+    })
+
+    // Data row styling: color by AI Score (col index 5)
+    dataRows.forEach((row, ri) => {
+      const score = row[5]
+      const fill = SCORE_FILL[score]
+      if (!fill) return
+      HEADERS.forEach((_, ci) => {
+        const cellRef = XLSX.utils.encode_cell({ r: ri + 1, c: ci })
+        if (!ws[cellRef]) return
+        ws[cellRef].s = { fill: { patternType: 'solid', ...fill } }
+      })
+    })
+
+    // Auto-width: measure max char length per column
+    ws['!cols'] = HEADERS.map((h, ci) => {
+      const max = Math.max(
+        h.length,
+        ...dataRows.map(row => String(row[ci] ?? '').length)
+      )
+      return { wch: Math.min(max + 2, 60) }
+    })
+
+    const date = new Date().toISOString().slice(0, 10)
+    const safeName = (s) => s.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '-').replace(/-+/g, '-')
+    const filename = `leads-${safeName(searchMeta.country ?? '')}-${safeName(searchMeta.businessType ?? '')}-${date}.xlsx`
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads')
+    XLSX.writeFile(wb, filename)
+  }
+
   async function handleExport() {
     const toExport = (results ?? [])
       .filter(r => selected.has(r._id))
@@ -168,6 +253,7 @@ export default function App() {
             showRejected={showRejected}
             setShowRejected={setShowRejected}
             onExport={handleExport}
+            onDownloadExcel={handleDownloadExcel}
           />
         </main>
       </div>

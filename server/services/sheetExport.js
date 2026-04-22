@@ -47,7 +47,7 @@ export async function exportLeads(leads, meta) {
   const firstCell = (checkRes.data.values ?? [])[0]?.[0] ?? ''
   const hasHeader = firstCell === HEADERS[0]
 
-  const exportedAt = new Date().toISOString()
+  const exportedAt = new Date().toISOString().slice(0, 10)
   const dataRows = leads.map((lead) => leadToRow(lead, meta, exportedAt))
 
   const rowsToWrite = hasHeader ? dataRows : [HEADERS, ...dataRows]

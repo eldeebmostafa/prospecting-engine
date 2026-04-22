@@ -61,7 +61,7 @@ function SocialIcons({ socialLinks }) {
 
 export default function ResultsTable({
   results, socialLinks, loading, loadingStep,
-  selected, setSelected, showRejected, setShowRejected, onExport,
+  selected, setSelected, showRejected, setShowRejected, onExport, onDownloadExcel,
 }) {
   const checkAllRef = useRef(null)
 
@@ -208,6 +208,18 @@ export default function ResultsTable({
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v8m0 0l-3-3m3 3l3-3M3 12h10" />
             </svg>
             {selectedVisible > 0 ? `Export ${selectedVisible}` : 'Export Selected'}
+          </button>
+
+          <button
+            onClick={onDownloadExcel}
+            disabled={selectedVisible === 0}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-emerald-600 text-white font-semibold
+              hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm shadow-emerald-200"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h12M8 2v8m0 0l-3-3m3 3l3-3" />
+            </svg>
+            Excel
           </button>
         </div>
       </div>
