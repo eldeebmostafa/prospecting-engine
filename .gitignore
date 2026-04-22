@@ -16,3 +16,4 @@ client/dist/
 # misc
 .DS_Store
 prospecting-494012-942a43a1d181.json
+.vercel
