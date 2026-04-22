@@ -93,7 +93,6 @@ Evaluate each lead and return ONLY a valid JSON array — no markdown, no preamb
 Each element must correspond to the input lead at the same index and have exactly these fields:
 - score: one of "High", "Medium", "Low", "Reject"
 - reason: one concise sentence in English explaining the score
-- isImporter: one of "Yes", "Maybe", "No"
 - whatsappDetected: boolean — true if the lead has a phone number or any social media presence suggesting WhatsApp usage`
 
 async function qualifyBatch(leads, criteria, openai, model) {
@@ -180,7 +179,7 @@ router.post('/', async (req, res) => {
       for (let j = 0; j < batch.length; j++) {
         qualified.push({
           ...batch[j],
-          ...(aiResults[j] ?? { score: 'Low', reason: 'No AI result returned', isImporter: 'No', whatsappDetected: false }),
+          ...(aiResults[j] ?? { score: 'Low', reason: 'No AI result returned', whatsappDetected: false }),
         })
       }
     }

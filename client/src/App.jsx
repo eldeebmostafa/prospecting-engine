@@ -6,7 +6,7 @@ import Toast from './components/Toast'
 
 const HEADERS = [
   'Business Name', 'Phone', 'Address', 'Website', 'Source',
-  'AI Score', 'AI Reason', 'Is Importer', 'WhatsApp Detected',
+  'AI Score', 'AI Reason', 'WhatsApp Detected',
   'Facebook', 'Instagram', 'TikTok',
   'Duplicate Flag', 'Country', 'City', 'Business Type', 'Exported At',
 ]
@@ -28,7 +28,6 @@ function leadToRow(lead, meta) {
     lead.source ?? '',
     lead.score ?? '',
     lead.reason ?? '',
-    lead.isImporter ?? '',
     lead.whatsappDetected ? 'Yes' : 'No',
     firstLink(lead.socialLinks?.facebook),
     firstLink(lead.socialLinks?.instagram),
